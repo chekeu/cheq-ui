@@ -138,8 +138,9 @@ export default function ManualEntry() {
             </div>
             
             <button 
-              disabled={items.length === 0}
-              className="w-full py-4 bg-brand text-background text-lg font-bold rounded-cheq disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#99E3D6] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                onClick={() => navigate('/split')} // Add this
+                disabled={items.length === 0}
+                className="w-full py-4 bg-brand text-background text-lg font-bold rounded-cheq disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#99E3D6] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
               Continue to Split
               <ArrowRight size={20} />

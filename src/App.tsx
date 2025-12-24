@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Home from './pages/Home';
 import ManualEntry from './pages/ManualEntry';
+import Split from './pages/Split';
 
 // We need a separate component for the Routes so we can use the 'useLocation' hook
 const AnimatedRoutes = () => {
@@ -12,6 +13,7 @@ const AnimatedRoutes = () => {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/manual" element={<ManualEntry />} />
+        <Route path="/split" element={<Split />} />
       </Routes>
     </AnimatePresence>
   );
