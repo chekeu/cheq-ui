@@ -1,0 +1,32 @@
+/* 1. Import Tailwind */
+@import "tailwindcss";
+
+/* 2. Define the Cheq Identity */
+@theme {
+  /* Colors */
+  --color-background: #222E31; /* Deep Charcoal */
+  --color-foreground: #FFFFFF; /* Pure White */
+  --color-brand: #80D8C8;      /* Muted Aqua */
+  --color-surface: #2C3B3F;    /* Lighter Charcoal */
+  
+  /* Border Radius */
+  --radius-cheq: 4px;          /* Sharp/Brutalist */
+
+  /* Fonts (We link these names to the fonts we load in HTML) */
+  --font-sans: "Inter", sans-serif;
+  --font-body: "Roboto", sans-serif;
+}
+
+/* 3. Global Reset */
+:root {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden; 
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
