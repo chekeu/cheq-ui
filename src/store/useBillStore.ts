@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { billService } from '../services/billService';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
 export interface ReceiptItem {
   id: string;
@@ -17,6 +19,7 @@ interface BillState {
   hostVenmo: string | null;
   hostCashApp: string | null;
   hostZelle: string | null;
+  realtimeChannel: RealtimeChannel | null; 
   addItem: (name: string, price: number) => void;
   removeItem: (id: string) => void;
   toggleItem: (id: string) => void;
@@ -26,9 +29,12 @@ interface BillState {
   saveBillToCloud: (paymentInfo?: { venmo?: string, cashapp?: string, zelle?: string }) => Promise<string>;
   loadBill: (billId: string) => Promise<void>; 
   commitGuestClaims: (guestName: string) => Promise<void>;
+  subscribeToBill: (billId: string) => void;
+  unsubscribeFromBill: () => void;
 }
 
 export const useBillStore = create<BillState>((set, get) => ({
+  realtimeChannel: null, // Default null
   items: [],
   taxRate: 0.08,
   tipRate: 0.20,
@@ -36,6 +42,56 @@ export const useBillStore = create<BillState>((set, get) => ({
   hostVenmo: null,
   hostCashApp: null,
   hostZelle: null,
+
+   subscribeToBill: (billId: string) => {
+    // Cleanup existing channel if any
+    const currentChannel = get().realtimeChannel;
+    if (currentChannel) supabase.removeChannel(currentChannel);
+
+    // Create new channel
+    const channel = supabase
+      .channel(`bill-${billId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'items',
+          filter: `bill_id=eq.${billId}`, // Only listen to this bill
+        },
+        (payload) => {
+          // payload.new contains the updated row
+          const updatedItem = payload.new;
+          
+          set((state) => ({
+            items: state.items.map((item) => {
+              if (item.id === updatedItem.id) {
+                return {
+                  ...item,
+                  // Update who claimed it
+                  claimedBy: updatedItem.claimed_by,
+                  // Note: We don't overwrite 'isSelected' here because that's local user state.
+                  // We only care about the external 'claimedBy' status for locking.
+                };
+              }
+              return item;
+            }),
+          }));
+        }
+      )
+      .subscribe();
+
+    set({ realtimeChannel: channel });
+  },
+
+  // 2. CLEANUP
+  unsubscribeFromBill: () => {
+    const { realtimeChannel } = get();
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel);
+      set({ realtimeChannel: null });
+    }
+  },
 
   commitGuestClaims: async (guestName: string) => {
     const state = get();

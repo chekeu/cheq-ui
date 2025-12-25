@@ -8,82 +8,75 @@ export default function GuestSplit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Destructure all necessary store actions
   const { items, loadBill, isLoading, toggleItem, commitGuestClaims } = useBillStore();
   
-  // Local State
+  // GUEST IDENTITY STATE
   const [guestName, setGuestName] = useState('');
-  const [showNameModal, setShowNameModal] = useState(false);
-  const [isCommitting, setIsCommitting] = useState(false); // For the save button loading state
+  
+  const [showNameModal, setShowNameModal] = useState(() => {
+    const stored = localStorage.getItem('cheq_guest_name');
+    return !stored; 
+  });
+  
+  const [isCommitting, setIsCommitting] = useState(false);
 
-  // 1. Hydrate Data & Check Guest Identity
+  // 1. Hydrate Data
   useEffect(() => {
-    // A. Load the Bill from DB
-    if (id && items.length === 0) {
+    // Only fetch if we have an ID and the store is empty (or stale)
+    // Note: If you are testing on the same tab as the Host, reload the page to clear the store.
+    if (id) {
       loadBill(id);
     }
-
-    // B. Check if we know who this guest is
+    
+    // Sync local state name if it exists (for the "Welcome, Name" header)
     const storedName = localStorage.getItem('cheq_guest_name');
-    if (storedName) {
-      setGuestName(storedName);
-    } else {
-      setShowNameModal(true); // Block access until name entered
-    }
-  }, [id, items.length, loadBill]);
+    if (storedName) setGuestName(storedName);
+    
+  }, [id, loadBill]); // Simplified dependencies
 
-  // 2. Handle Name Save
   const handleSaveName = () => {
     if (!guestName.trim()) return;
     localStorage.setItem('cheq_guest_name', guestName);
     setShowNameModal(false);
   };
 
-  // 3. Handle "Ready to Pay" (Commit to DB)
   const handleReadyToPay = async () => {
     try {
       setIsCommitting(true);
-      
-      // Save claims to Supabase
       await commitGuestClaims(guestName);
-      
-      // Move to payment screen
       navigate(`/pay/${id}`);
-      
     } catch (error) {
       console.error(error);
       alert("Some items may have been taken by others. The page will refresh.");
-      if (id) loadBill(id); // Reload to see the latest state
+      if (id) loadBill(id);
     } finally {
       setIsCommitting(false);
     }
   };
-
-  // Loading View
+  
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-brand animate-pulse font-bold tracking-widest">LOADING BILL...</div>
       </div>
     );
   }
 
-  // Calculate my current local selection total
   const myTotal = items.filter(i => i.isSelected).reduce((sum, item) => sum + item.price, 0);
 
   return (
     <PageTransition>
       <div className="min-h-screen bg-background text-foreground font-sans flex flex-col items-center">
         <div className="w-full max-w-md min-h-screen bg-background flex flex-col relative md:border-x md:border-surface">
+          
           <header className="p-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-surface/50">
              <div>
                <h1 className="text-xl font-bold tracking-tight">Select Items</h1>
-               <p className="text-xs text-gray-500">Welcome, {guestName}</p>
+               <p className="text-xs text-gray-500">Welcome, {guestName || 'Guest'}</p>
              </div>
              <span className="text-[10px] font-bold bg-surface px-2 py-1 rounded text-gray-400">GUEST MODE</span>
           </header>
 
-          {/* List of Items in the Bill */}
           <main className="flex-1 p-4 pb-40 overflow-y-auto">
              <div className="space-y-2">
               {items.map((item) => {
@@ -98,10 +91,10 @@ export default function GuestSplit() {
                       w-full text-left relative group overflow-hidden
                       flex justify-between items-center p-5 rounded-cheq border transition-all duration-200
                       ${isTaken 
-                        ? 'bg-surface/10 border-transparent opacity-50 cursor-not-allowed' // TAKEN STATE
+                        ? 'bg-surface/10 border-transparent opacity-50 cursor-not-allowed' 
                         : item.isSelected 
-                          ? 'bg-brand border-brand shadow-[0_0_15px_rgba(128,216,200,0.2)] scale-[1.02] z-10' // MY SELECTED STATE
-                          : 'bg-surface/30 border-transparent hover:bg-surface/50 text-gray-300' // AVAILABLE STATE
+                          ? 'bg-brand border-brand shadow-[0_0_15px_rgba(128,216,200,0.2)] scale-[1.02] z-10' 
+                          : 'bg-surface/30 border-transparent hover:bg-surface/50 text-gray-300' 
                       }
                     `}
                   >
@@ -109,7 +102,6 @@ export default function GuestSplit() {
                       <span className={`font-bold text-lg ${item.isSelected ? 'text-background' : 'text-white'}`}>
                         {item.name}
                       </span>
-                      
                       {isTaken && (
                         <div className="flex items-center gap-1 mt-1 text-red-400/70">
                            <Lock size={10} />
@@ -119,7 +111,6 @@ export default function GuestSplit() {
                         </div>
                       )}
                     </div>
-
                     <div className="flex items-center gap-3 relative z-10">
                       <span className={`font-mono text-lg font-bold ${item.isSelected ? 'text-background' : 'text-brand'}`}>
                         ${item.price.toFixed(2)}
@@ -136,7 +127,6 @@ export default function GuestSplit() {
             </div>
           </main>
 
-          {/* Action to Pay and go to the Payment Screen. The call to action button saves to the DB here. */}
           <div className="fixed bottom-0 w-full max-w-md p-6 bg-background border-t border-surface shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20">
             <div className="flex justify-between items-end mb-4 px-1">
               <div className="flex flex-col">
@@ -160,7 +150,7 @@ export default function GuestSplit() {
             </button>
           </div>
 
-          {/* Modal to designate who the guest user is */}
+          {/* NAME ENTRY MODAL */}
           {showNameModal && (
             <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl p-6 flex flex-col justify-center items-center animate-in fade-in duration-300">
               <div className="w-full max-w-sm space-y-6 text-center">
