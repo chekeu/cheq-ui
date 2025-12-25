@@ -6,6 +6,7 @@ import Split from './pages/Split';
 import HostDashboard from './pages/HostDashboard';
 import GuestSplit from './pages/GuestSplit';      // Make sure this is imported
 import GuestSettlement from './pages/GuestSettlement'; // Make sure this is imported
+import ScrollToTop from './components/ScrollToTop';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -27,6 +28,7 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <BrowserRouter>
+    <ScrollToTop/>
       <AnimatedRoutes />
     </BrowserRouter>
   )

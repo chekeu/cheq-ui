@@ -46,7 +46,7 @@ export default function HostDashboard() {
   // 3. SHARE
  const handleShare = () => {
     const baseUrl = window.location.origin;
-    const guestLink = `${baseUrl}/#/bill/${id}`; // Ensure hash routing is handled if using Github Pages
+    const guestLink = `${baseUrl}/bill/${id}`;
     
     // LOGIC: Get Host Name for the text
     let hostName = localStorage.getItem('cheq_host_name');
