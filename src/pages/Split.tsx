@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Check, DollarSign, CheckCircle, Wallet, X } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle, Wallet, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
 import { useBillStore } from '../store/useBillStore';
