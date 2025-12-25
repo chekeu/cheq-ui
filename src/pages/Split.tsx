@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Check, CheckCircle, Wallet, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
@@ -15,6 +15,15 @@ export default function Split() {
   const [venmo, setVenmo] = useState('');
   const [cashapp, setCashapp] = useState('');
   const [zelle, setZelle] = useState('');
+
+  const mainRef = useRef<HTMLDivElement>(null); // NEW
+
+  // Force scroll to top on mount
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, []);
 
   // 1. Load saved handles
   useEffect(() => {
@@ -76,7 +85,7 @@ export default function Split() {
              </div>
           </header>
 
-          <main className="flex-1 p-4 pb-48 overflow-y-auto">
+          <main ref={mainRef} className="flex-1 p-4 pb-48 overflow-y-auto">
              <div className="space-y-2">
               {items.map((item) => (
                 <button

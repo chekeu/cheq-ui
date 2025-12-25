@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBillStore } from '../store/useBillStore';
 import { PageTransition } from '../components/PageTransition';
@@ -19,6 +19,15 @@ export default function GuestSplit() {
   });
   
   const [isCommitting, setIsCommitting] = useState(false);
+
+  const mainRef = useRef<HTMLDivElement>(null); // NEW
+
+  // Force scroll to top on mount
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, []);
 
   // 1. Hydrate Data
   useEffect(() => {
@@ -77,7 +86,7 @@ export default function GuestSplit() {
              <span className="text-[10px] font-bold bg-surface px-2 py-1 rounded text-gray-400">GUEST MODE</span>
           </header>
 
-          <main className="flex-1 p-4 pb-40 overflow-y-auto">
+          <main ref={mainRef} className="flex-1 p-4 pb-40 overflow-y-auto">
              <div className="space-y-2">
               {items.map((item) => {
                 const isTaken = item.claimedBy !== null && item.claimedBy !== undefined;
@@ -164,7 +173,7 @@ export default function GuestSplit() {
                 <input 
                   autoFocus
                   type="text" 
-                  placeholder="Your Name (e.g. Mike)"
+                  placeholder="Your Name (e.g Leena Park)"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
