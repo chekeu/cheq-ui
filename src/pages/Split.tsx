@@ -93,7 +93,6 @@ export default function Split() {
             </div>
           </main>
 
-          {/* 3. DYNAMIC FOOTER */}
           <div className="fixed bottom-0 w-full max-w-md p-6 bg-background border-t border-surface shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20">
             
             {/* The "My Share" Card */}
@@ -109,20 +108,14 @@ export default function Split() {
               </div>
             </div>
             
-            <div className="grid grid-cols-4 gap-3">
-              {/* Share Button (Future) */}
-              <button className="col-span-1 py-4 bg-surface hover:bg-surface/80 rounded-cheq flex items-center justify-center text-white transition-colors">
-                <Share2 size={20} />
-              </button>
-
-              {/* Pay Button */}
+            <div className="flex justify-center padding-2">
               <button 
                 disabled={selectedCount === 0}
-                 onClick={() => navigate('/settle')}
-                className="col-span-3 py-4 bg-brand text-background text-lg font-bold rounded-cheq disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#99E3D6] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(128,216,200,0.3)]"
+                onClick={() => navigate('/host-dashboard')}
+                className="col-span-3 py-4 px-8 bg-brand text-background text-lg font-bold rounded-cheq disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#99E3D6] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(128,216,200,0.3)]"
               >
-                Pay Now
-                <DollarSign size={20} strokeWidth={3} />
+               Finish & Share
+               <Share2 size={20} strokeWidth={3} />
               </button>
             </div>
           </div>
