@@ -173,7 +173,7 @@ export default function GuestSplit() {
                 <input 
                   autoFocus
                   type="text" 
-                  placeholder="Your Name (e.g Leena Park)"
+                  placeholder="Your Name (e.g., Leena Park)"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
