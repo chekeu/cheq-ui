@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { ReceiptItem } from '../store/useBillStore';
+import { compressImage } from '../utils/image-compress';
 
 export interface BillData {
   items: ReceiptItem[];
@@ -13,6 +14,35 @@ export interface BillData {
 
 export const billService = {
   
+    async scanReceipt(file: File): Promise<{ name: string; price: number }[]> {
+    try {
+      // A. Compress the image locally first (Critical for speed/limits)
+      const base64Image = await compressImage(file);
+
+      // B. Call the deployed Supabase Function
+      // 'scan-receipt' must match the folder name in supabase/functions/
+      const { data, error } = await supabase.functions.invoke('scan-receipt', {
+        body: { image: base64Image },
+      });
+
+      if (error) {
+        console.error('Edge Function Error:', error);
+        throw new Error('Failed to reach scanner');
+      }
+
+      // C. Validate Response
+      if (!data || !data.items) {
+        throw new Error('No items found in receipt');
+      }
+
+      return data.items;
+
+    } catch (err) {
+      console.error(err);
+      throw err; // Re-throw to let UI handle the alert
+    }
+  },
+
   // CREATE BILL
   async createBill(data: BillData) {
     // A. Insert Bill Header
