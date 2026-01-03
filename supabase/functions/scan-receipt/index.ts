@@ -1,6 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-// Import the official SDK via NPM specifier
-import * as mindee from "npm:mindee@4" 
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS
+  // 1. Handle CORS (Browser pre-flight checks)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -17,40 +15,55 @@ serve(async (req) => {
     const { image } = await req.json()
     if (!image) throw new Error('No image provided');
 
-    // 1. Initialize Mindee Client
-    // It automatically reads 'MINDEE_API_KEY' from Deno.env
-    const mindeeClient = new mindee.Client({
-      apiKey: Deno.env.get('MINDEE_API_KEY')
-    });
+    const apiKey = Deno.env.get('MINDEE_API_KEY');
+    
+    // Debug Log: Check if key exists and length (Don't log the full key for security)
+    console.log(`[DEBUG] API Key present: ${!!apiKey}`);
+    if (apiKey) console.log(`[DEBUG] API Key length: ${apiKey.length}`);
 
-    // 2. Prepare the File
-    // Convert Base64 back to a buffer
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-    const binaryString = atob(base64Data);
-    const len = binaryString.length;
+    if (!apiKey) throw new Error('Missing MINDEE_API_KEY secret');
+
+    // 3. Prepare Binary Data
+    const base64Clean = image.includes(',') ? image.split(',')[1] : image;
+    const binaryStr = atob(base64Clean);
+    const len = binaryStr.length;
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+        bytes[i] = binaryStr.charCodeAt(i);
     }
+    const blob = new Blob([bytes], { type: 'image/jpeg' });
+
+    // 4. Construct FormData
+    const formData = new FormData();
+    formData.append('document', blob, 'receipt.jpg');
+
+    console.log("[DEBUG] Sending request to Mindee...");
     
-    // Load the document (Mindee SDK accepts Buffer/Uint8Array)
-    const inputSource = mindeeClient.docFromBuffer(bytes, "receipt.jpg");
+    const response = await fetch('https://api.mindee.net/v1/products/mindee/expense_receipts/v5/predict', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${apiKey.trim()}`, // .trim() removes accidental spaces!
+      },
+      body: formData,
+    });
 
-    // 3. Parse the Receipt (Using the specific API product)
-    const apiResponse = await mindeeClient.parse(
-      mindee.product.ReceiptV5,
-      inputSource
-    );
+    const data = await response.json();
 
-    // 4. Extract Items
-    // The SDK gives us a clean object structure
-    const prediction = apiResponse.document.inference.prediction;
-    const lineItems = prediction.lineItems || [];
+    // 6. Handle Errors
+    if (!response.ok) {
+      console.error("[ERROR] Mindee Response:", JSON.stringify(data));
+      throw new Error(`Mindee API: ${data.api_request?.error?.message || response.statusText}`);
+    }
+
+    const prediction = data.document?.inference?.prediction;
+    const lineItems = prediction?.line_items || [];
 
     const cleanItems = lineItems.map((item: any) => ({
       name: item.description || "Item",
-      price: item.totalAmount || 0
+      price: item.total_amount || 0
     })).filter((i: any) => i.price > 0);
+
+    console.log(`[DEBUG] Found ${cleanItems.length} items.`);
 
     return new Response(JSON.stringify({ items: cleanItems }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -58,8 +71,8 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("Scanning Error:", error);
-    return new Response(JSON.stringify({ error: error.message || "Scan failed" }), {
+    console.error("[CRITICAL ERROR]:", error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
