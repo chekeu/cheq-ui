@@ -6,32 +6,31 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const { image } = await req.json()
     const apiKey = Deno.env.get('GEMINI_API_KEY');
 
-    // --- FALLBACK: MOCK DATA (Safety Net) ---
+    // FALLBACK
     if (!apiKey) {
-      console.log("No Gemini Key found. Using Mock Data.");
+      console.log("No Gemini Key. Returning Mock Data.");
       return returnMockData();
     }
 
-    // 1. Clean Base64 (Remove data:image/... prefix)
+    // Clean Base64
     const base64Clean = image.includes(',') ? image.split(',')[1] : image;
 
-    console.log("Sending to Google Gemini...");
+    console.log("Sending to Gemini 1.5 Flash (001)...");
 
-    // 2. Call Google Gemini API (REST)
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // UPDATED URL: Using specific version 'gemini-1.5-flash-001'
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{
           parts: [
-            { text: "Extract items from this receipt. Return ONLY a JSON object with a key 'items' containing an array of objects with 'name' (string) and 'price' (number). Fix abbreviations. Exclude tax and tip." },
+            { text: "Extract items from receipt. Return JSON object with key 'items' (array of {name: string, price: number}). Exclude tax/tip." },
             {
               inline_data: {
                 mime_type: "image/jpeg",
@@ -50,13 +49,11 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error("Gemini API Error:", JSON.stringify(data));
-      // Fallback to mock data if API fails (e.g. rate limit)
-      return returnMockData();
+      return returnMockData(); 
     }
 
-    // 3. Parse Response
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) throw new Error("Empty response from Gemini");
+    if (!rawText) throw new Error("No text returned from Gemini");
 
     const parsed = JSON.parse(rawText);
     const items = Array.isArray(parsed) ? parsed : (parsed.items || []);
@@ -68,17 +65,15 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Function Error:", error);
-    // Always return mock data on crash so app doesn't break
     return returnMockData();
   }
 })
 
-// Helper: Reliable Mock Data
 function returnMockData() {
   const mockItems = [
     { name: "Gemini Burger", price: 15.00 },
     { name: "Flash Fries", price: 5.50 },
-    { name: "Zero Error Soda", price: 3.00 }
+    { name: "Mock Soda", price: 3.00 }
   ];
   return new Response(JSON.stringify({ items: mockItems }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
