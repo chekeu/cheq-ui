@@ -31,9 +31,9 @@ export default function ManualEntry() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col items-center">
-        <div className="w-full max-w-md min-h-screen bg-background flex flex-col relative md:border-x md:border-surface">
-          <header className="p-6 flex items-center justify-between border-b border-surface/50">
+      <div className="h-screen w-full bg-background text-foreground font-sans flex flex-col items-center overflow-hidden">
+        <div className="w-full max-w-md h-full bg-background flex flex-col relative md:border-x md:border-surface shadow-2xl">
+          <header className="shrink-0 p-6 flex items-center justify-between border-b border-surface/50 bg-background z-20">
             <div className="flex items-center gap-4">
               <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-400 hover:text-white rounded-full">
                 <ArrowLeft size={24} />
@@ -51,7 +51,7 @@ export default function ManualEntry() {
           </header>
 
           {/* INPUT FORM */}
-          <div className="p-6 bg-surface/30 backdrop-blur-md sticky top-0 z-10 border-b border-surface/50">
+          <div className="shrink-0 p-6 bg-surface/30 backdrop-blur-md z-10 border-b border-surface/50">
             <form onSubmit={handleAdd} className="flex gap-3">
               <div className="flex-1 space-y-2">
                 <input
@@ -83,7 +83,7 @@ export default function ManualEntry() {
           </div>
 
           {/* LIST */}
-          <main className="flex-1 p-6 overflow-y-auto pb-32">
+          <main className="flex-1 overflow-y-auto p-6 pb-40 scrollbar-hid">
             {items.length === 0 ? (
               <div className="text-center mt-20 opacity-30">
                 <p className="text-6xl mb-4">🧾</p>
@@ -106,7 +106,7 @@ export default function ManualEntry() {
             )}
           </main>
 
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-background border-t border-surface shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-background border-t border-surface shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-30">
             <div className="flex justify-between items-end mb-4">
               <span className="text-gray-400 text-sm font-medium">Subtotal</span>
               <span className="text-3xl font-mono font-bold text-white tracking-tight">

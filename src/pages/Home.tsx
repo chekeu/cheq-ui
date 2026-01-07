@@ -70,7 +70,6 @@ export default function Home() {
           <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
             <Loader2 size={48} className="text-brand animate-spin mb-4" />
             <h2 className="text-xl font-bold text-white">Analyzing Receipt...</h2>
-            <p className="text-gray-400 text-sm mt-2">Connecting to Neural Net</p>
           </div>
         )}
 
