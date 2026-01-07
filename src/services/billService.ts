@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase';
 import type { ReceiptItem } from '../store/useBillStore';
-import { compressImage } from '../utils/image-compress';
 
 export interface BillData {
   items: ReceiptItem[];
