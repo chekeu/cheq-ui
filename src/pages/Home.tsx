@@ -71,7 +71,6 @@ export default function Home() {
           <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
             <Loader2 size={48} className="text-brand animate-spin mb-4" />
             <h2 className="text-xl font-bold text-white">Analyzing Receipt...</h2>
-            <p className="text-gray-400 text-sm mt-2">Connecting to Neural Net</p>
           </div>
         )}
 
@@ -142,17 +141,54 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="mt-12 grid grid-cols-2 gap-3 w-full opacity-60">
-              <div className="p-3 bg-surface/30 rounded-cheq border border-white/5 flex flex-col items-center text-center">
-                <Zap className="text-brand mb-2" size={16} />
-                <h3 className="font-bold text-xs text-white">Lightning Fast</h3>
-                <p className="text-[10px] text-gray-500 mt-0.5">No app store needed.</p>
+          <div className="mt-12 w-full space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="h-px flex-1 bg-white/10"></div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">What is Cheq?</span>
+                <div className="h-px flex-1 bg-white/10"></div>
               </div>
-              <div className="p-3 bg-surface/30 rounded-cheq border border-white/5 flex flex-col items-center text-center">
-                <Share2 className="text-brand mb-2" size={16} />
-                <h3 className="font-bold text-xs text-white">Deep Links</h3>
-                <p className="text-[10px] text-gray-500 mt-0.5">Venmo & CashApp.</p>
+
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-start gap-3 p-3 bg-surface/20 rounded-cheq border border-white/5">
+                  <div className="p-2 bg-brand/10 rounded-full text-brand shrink-0">
+                    <Zap size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">No App Download</h3>
+                    <p className="text-xs text-gray-400 leading-relaxed mt-0.5">
+                      Your friends don't need to sign up. They just tap the link, pick their food, and pay.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-surface/20 rounded-cheq border border-white/5">
+                  <div className="p-2 bg-brand/10 rounded-full text-brand shrink-0">
+                    <Receipt size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Smart Scan</h3>
+                    <p className="text-xs text-gray-400 leading-relaxed mt-0.5">
+                      Our AI reads the receipt for you. It detects items, prices, tax, and tip automatically.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-surface/20 rounded-cheq border border-white/5">
+                  <div className="p-2 bg-brand/10 rounded-full text-brand shrink-0">
+                    <Share2 size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Instant Venmo Links</h3>
+                    <p className="text-xs text-gray-400 leading-relaxed mt-0.5">
+                      We generate deep links that open Venmo with the exact amount pre-filled. Zero math.
+                    </p>
+                  </div>
+                </div>
               </div>
+              
+              <p className="text-center text-[10px] text-gray-600 pt-8 pb-4">
+                Secure • Private • Fast
+              </p>
             </div>
 
           </main>

@@ -124,16 +124,31 @@ export default function HostDashboard() {
                 isSettled ? 'bg-green-500/10' : 'bg-brand/10'
               }`} />
 
-              {/* Rules Metadata */}
-              <div className="flex gap-2 mb-6 relative z-10">
+             <div className="flex gap-2 mb-6 relative z-10">
+                
+                {/* Tax Dollar Amount */}
                 <div className="px-2 py-1 rounded-[4px] bg-white/5 border border-white/10 flex items-center gap-2">
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tax</span>
-                  <span className="text-xs font-mono text-gray-300">{(taxRate * 100).toFixed(2)}%</span>
+                  <span className="text-xs font-mono text-gray-300">
+                    ${(billSubtotal * taxRate).toFixed(2)}
+                  </span>
                 </div>
+
+                {/* Tip Dollar Amount */}
                 <div className="px-2 py-1 rounded-[4px] bg-white/5 border border-white/10 flex items-center gap-2">
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tip</span>
-                  <span className="text-xs font-mono text-gray-300">{(tipRate * 100).toFixed(0)}%</span>
+                  <span className="text-xs font-mono text-gray-300">
+                    ${(billSubtotal * tipRate).toFixed(2)}
+                  </span>
                 </div>
+                
+                {/* Rate Badge */}
+                <div className="px-2 py-1 rounded-[4px] flex items-center">
+                   <span className="text-[10px] text-gray-600 font-mono">
+                     @ {((tipRate)*100).toFixed(0)}%
+                   </span>
+                </div>
+
               </div>
 
               {/* Stats */}
