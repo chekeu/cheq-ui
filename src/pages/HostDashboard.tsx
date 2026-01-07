@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Share, RefreshCw, Pencil, CheckSquare, CheckCircle2, CircleDashed } from 'lucide-react';
 import { PageTransition } from '../components/PageTransition';
@@ -7,7 +7,8 @@ import { useBillStore } from '../store/useBillStore';
 export default function HostDashboard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const mainRef = useRef<HTMLDivElement>(null);
+
   const { items, taxRate, tipRate, loadBill, isLoading, subscribeToBill, unsubscribeFromBill } = useBillStore();
   
   const [copied, setCopied] = useState(false);
@@ -15,6 +16,9 @@ export default function HostDashboard() {
   // 1. HYDRATION
   useEffect(() => {
     if (id) {
+      if (mainRef.current) {
+        mainRef.current.scrollTop = 0; // Force scroll to top
+      }
       loadBill(id); // Always fetch fresh
       subscribeToBill(id);
     }
@@ -113,7 +117,7 @@ export default function HostDashboard() {
             </button>
           </header>
 
-          <main className="flex-1 p-6 pb-32 overflow-y-auto">
+          <main ref={mainRef} className="flex-1 p-6 pb-32 overflow-y-auto">
             
             {/* 1. STATUS CARD */}
             <div className={`rounded-cheq p-6 mb-4 border relative overflow-hidden shadow-lg transition-colors duration-500 ${
