@@ -77,7 +77,7 @@ export const useBillStore = create<BillState>((set, get) => ({
     const targetItem = state.items[targetItemIndex];
     const newPrice = targetItem.price / ways;
     
-    const newItems = Array.from({ length: ways }).map((_, i) => ({
+    const newItems = Array.from({ length: ways }).map((_) => ({
       id: crypto.randomUUID(),
       name: `1/${ways} ${targetItem.name}`,
       price: newPrice,
