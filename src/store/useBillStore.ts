@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { billService } from '../services/billService';
-import { RealtimeChannel } from '@supabase/supabase-js'; 
-import { supabase } from '../lib/supabase'; 
+import { supabase } from '../lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface ReceiptItem {
   id: string;
@@ -15,10 +15,15 @@ interface BillState {
   items: ReceiptItem[];
   storeName: string;
   billDate: string;
+  
+  // Specific overrides from OCR or Manual Entry
   ocrTax: number | null;
   ocrTip: number | null;
+  
+  // Global percentages
   taxRate: number;
   tipRate: number;
+  
   isLoading: boolean;
   hostVenmo: string | null;
   hostCashApp: string | null;
@@ -27,12 +32,14 @@ interface BillState {
 
   addItem: (name: string, price: number) => void;
   removeItem: (id: string) => void;
-  toggleItem: (id: string) => void;
   splitItem: (itemId: string, ways: number) => void;
-
+  toggleItem: (id: string) => void;
+  
   setTax: (rate: number) => void;
   setTip: (rate: number) => void;
+  
   setMetadata: (data: { store?: string; date?: string; tax?: number; tip?: number }) => void;
+  
   clearBill: () => void;
   saveBillToCloud: (paymentInfo?: { venmo?: string, cashapp?: string, zelle?: string }) => Promise<string>;
   loadBill: (billId: string) => Promise<void>;
@@ -47,8 +54,8 @@ export const useBillStore = create<BillState>((set, get) => ({
   billDate: "",
   ocrTax: null,
   ocrTip: null,
-  taxRate: 0.08,
-  tipRate: 0.20,
+  taxRate: 0.08, // Default 8%
+  tipRate: 0.20, // Default 20%
   isLoading: false,
   hostVenmo: null,
   hostCashApp: null,
@@ -70,8 +77,7 @@ export const useBillStore = create<BillState>((set, get) => ({
     const targetItem = state.items[targetItemIndex];
     const newPrice = targetItem.price / ways;
     
-    // Create N new items
-    const newItems = Array.from({ length: ways }).map((_) => ({
+    const newItems = Array.from({ length: ways }).map((_, i) => ({
       id: crypto.randomUUID(),
       name: `1/${ways} ${targetItem.name}`,
       price: newPrice,
@@ -79,7 +85,6 @@ export const useBillStore = create<BillState>((set, get) => ({
       claimedBy: null
     }));
 
-    // Replace the old item with the new items in place
     const updatedItems = [...state.items];
     updatedItems.splice(targetItemIndex, 1, ...newItems);
 
@@ -91,16 +96,44 @@ export const useBillStore = create<BillState>((set, get) => ({
       item.id === id ? { ...item, isSelected: !item.isSelected } : item
     )
   })),
+
   setTax: (rate) => set({ taxRate: rate }),
   setTip: (rate) => set({ tipRate: rate }),
-  setMetadata: (data) => set((state) => ({
-    storeName: data.store ?? state.storeName,
-    billDate: data.date ?? state.billDate,
-    ocrTax: data.tax !== undefined ? data.tax : state.ocrTax,
-    ocrTip: data.tip !== undefined ? data.tip : state.ocrTip,
-  })),
-  clearBill: () => set({ items: [], storeName: "", billDate: "", ocrTax: null, ocrTip: null }),
-  
+
+  setMetadata: (data) => set((state) => {
+    const changes: Partial<BillState> = {};
+    
+    if (data.store !== undefined) changes.storeName = data.store;
+    if (data.date !== undefined) changes.billDate = data.date;
+
+    if (data.tax !== undefined) changes.ocrTax = data.tax;
+    if (data.tip !== undefined) changes.ocrTip = data.tip;
+
+    const currentSubtotal = state.items.reduce((sum, item) => sum + item.price, 0);
+    
+    if (currentSubtotal > 0) {
+      if (data.tax !== undefined && data.tax !== null) {
+        changes.taxRate = data.tax / currentSubtotal;
+      }
+      if (data.tip !== undefined && data.tip !== null) {
+        changes.tipRate = data.tip / currentSubtotal;
+      }
+    }
+
+    return changes;
+  }),
+
+  clearBill: () => set({ 
+    items: [], 
+    storeName: "", 
+    billDate: "", 
+    ocrTax: null, 
+    ocrTip: null,
+    // Reset rates to defaults on clear
+    taxRate: 0.08, 
+    tipRate: 0.20 
+  }),
+
   saveBillToCloud: async (paymentInfo) => {
     const state = get();
     const billId = await billService.createBill({
@@ -118,16 +151,13 @@ export const useBillStore = create<BillState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { bill, items } = await billService.getBill(billId);
-      
       const uiItems: ReceiptItem[] = items.map((dbItem: any) => ({
         id: dbItem.id,
         name: dbItem.name,
         price: dbItem.price,
         isSelected: false, 
-        
         claimedBy: dbItem.claimed_by
       }));
-
       set({
         items: uiItems,
         taxRate: bill.tax_rate,

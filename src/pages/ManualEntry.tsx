@@ -7,7 +7,7 @@ import { useBillStore, type ReceiptItem } from '../store/useBillStore';
 export default function ManualEntry() {
   const navigate = useNavigate();
   const { 
-    items, addItem, removeItem, splitItem, // Import splitItem
+    items, addItem, removeItem, splitItem,
     storeName, billDate, setMetadata,
     ocrTax, ocrTip, taxRate, tipRate, setTax, setTip
   } = useBillStore();
